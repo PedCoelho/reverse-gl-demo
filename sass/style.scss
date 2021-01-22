@@ -1,0 +1,28 @@
+
+$mainColor:  rgb(150, 149, 153);
+$text-color-light: white;
+
+.notification{
+    background-color:  $mainColor ;
+    color: $text-color-light;
+}
+
+a.button{
+    transition: .2s ease all;
+}
+
+a.button.is-warning{
+      
+    &:hover{
+        background-color: #ffc941 !important;
+    }
+}
+        
+a.button.is-danger{
+
+    &:hover{
+        background-color: #e03b5c !important;
+    }
+
+}
+
