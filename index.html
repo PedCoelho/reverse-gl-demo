@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GeoLocation Experiment</title>
+    <link rel="stylesheet" href="bulma.min.css">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+</head>
+<body>
+
+    <section class="hero is-info is-medium">
+        <div class="hero-body">
+            <div class="container has-text-centered-mobile">
+                <div class="level">
+                    <div class="block">
+                        <h1 class="title is-1">Mapping Data Demo</h1>
+                        <h1 class="subtitle is-3">Press button to begin</h1>
+                    </div>
+                    <a href="#" id="start" onclick="doIt()" class="button level-right is-large is-warning">Start Geo-Location</a>
+                </div>
+            </div>  
+        </div>
+    </section>
+
+    <section class="section has-text-centered">
+        <div class="container">
+            <div class="columns ">
+                <div class="column">
+                    <div class="notification is-primary">
+                        <h2 id="lat" class="title  has-text-light">Latitude</h2>
+                    </div>
+                </div>
+        
+                <div class="column">
+                    <div class="notification is-info">
+                        <h2 id="long" class="title  has-text-light">Longitude</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="columns has-text-weight-semibold">
+                <div class="column">
+                    <div id="neighbourhood" class="notification">
+                        Your General Location
+                    </div>
+                </div>
+            </div>
+            <div class="columns has-text-weight-semibold">
+                <div class="column">
+                    <div id="street" class="notification">
+                        More Specifically
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+
+        var lastPos = {lat:0,lon:0}
+        var running
+
+        var watchId
+
+        function doIt(){
+
+            if(running){
+                stopGeo(watchId)
+                clearText()
+                running = false
+                return
+            }
+
+            
+            watchId = navigator.geolocation.watchPosition(function(position) { 
+
+                let lat = position.coords.latitude
+                let lon = position.coords.longitude
+
+                if(running){
+                    if( lat == lastPos.lat && lon == lastPos.lon) return
+                }
+
+                lastPos.lat = lat
+                lastPos.lon = lon
+
+                console.log(`${lat},${lon}`)
+
+                document.querySelector('#lat').innerHTML = lat.toString()
+                document.querySelector('#long').innerHTML = lon.toString()
+                document.querySelector('#start').innerHTML = 'Stop Geo-Location'
+                document.querySelector('#start').classList.add('is-danger')
+                
+                
+                var address = getAddress(lat,lon)
+
+                address.then( response => {
+                    document.querySelector('#neighbourhood').innerText = response.address.suburb
+                    document.querySelector('#street').innerText = response.address.road
+                })
+                
+                running = true
+            
+            }) 
+
+        }
+
+        function stopGeo(geo){
+            navigator.geolocation.clearWatch(geo)
+        }
+
+        function clearText(){
+            
+            document.querySelector('#lat').innerHTML = 'Latitude'
+            document.querySelector('#long').innerHTML = 'Longitude'
+            document.querySelector('#start').innerHTML = 'Start Geo-Location'
+            document.querySelector('#start').classList.remove('is-danger')
+
+            document.querySelector('#neighbourhood').innerText = 'Your General Location'
+            document.querySelector('#street').innerText = 'More Specifically'
+            
+        }
+
+        function getAddress(lat,lon){
+            let params = new URLSearchParams ({
+                format:'json',
+                lat:lat,
+                lon:lon,
+                zoom:18,
+                addressdetails:1
+            })
+            
+            return fetch('https://nominatim.openstreetmap.org/reverse?'+params).then( x => x.json()).then( data => data)
+            
+
+        }
+    </script>
+</body>
+</html>
