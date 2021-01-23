@@ -100,6 +100,10 @@
 
                 address.then( response => {
                     if(response != undefined){
+                        if(response.error){
+                            document.querySelector('#neighbourhood').innerText = 'GeoLocation Error'
+                        document.querySelector('#street').innerText = 'GeoLocation Error'
+                        }
                         document.querySelector('#neighbourhood').innerText = response.address.neighbourhood || response.address.suburb || response.address.city || response.address.country
                         document.querySelector('#street').innerText = response.address.road || response.address.state_district || response.address.municipality || response.address.region || response.address.state
                     }
