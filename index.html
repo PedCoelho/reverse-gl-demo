@@ -100,8 +100,8 @@
 
                 address.then( response => {
                     if(response != undefined){
-                        document.querySelector('#neighbourhood').innerText = response.address.suburb || response.address.city
-                        document.querySelector('#street').innerText = response.address.road || response.address.state_district || response.address.municipality 
+                        document.querySelector('#neighbourhood').innerText = response.address.neighbourhood || response.address.suburb || response.address.city
+                        document.querySelector('#street').innerText = response.address.road || response.address.state_district || response.address.municipality || response.address.region
                     }
                 })
                 
