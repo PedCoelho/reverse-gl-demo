@@ -249,7 +249,7 @@
                             <p>y: ${dataPoint.lon}</p>
                             <p>date: ${new Date(dataPoint.date).toLocaleTimeString()}</p>
                             <p>address: ${dataPoint.address[0]},${dataPoint.address[1]}</p>
-                            <p>distance: ${dataPoint.distance} km</p>
+                            <p>distance: ${dataPoint.distance.toFixed(2)} km</p>
                             `
 
                     let dataPoint_end = '</div></div>'
@@ -268,7 +268,7 @@
             let distance_html = document.querySelector('#distance_total')
             let locations = document.querySelector('#location-holder')
             locations.innerHTML = all_segments
-            distance_html.innerHTML = `<h2>distância total:</h2><p>${total_distance} km</p>`
+            distance_html.innerHTML = `<h2>distância total:</h2><p>${total_distance.toFixed(2)} km</p>`
         }
 
         function downloadData() {
