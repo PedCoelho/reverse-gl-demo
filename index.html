@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +10,7 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
+
 <body>
 
     <section class="hero is-info is-medium">
@@ -19,21 +21,29 @@
                         <h1 class="title is-1">Mapping Data Demo</h1>
                         <h1 class="subtitle is-3">Press button to begin</h1>
                     </div>
-                    <a href="#" id="start" onclick="doIt()" class="button level-right is-large is-warning">Start Geo-Location</a>
+                    <div class="level-right ">
+                        <a href="#" id="start" onclick="doIt()" class="button m-3 is-large is-warning">Start
+                            Geo-Location</a>
+                        <a href="#" id="downloadAnchor" onclick="downloadData()"
+                            class="button m-3 is-large is-warning">Download
+                            Data</a>
+
+                    </div>
                 </div>
-            </div>  
+            </div>
         </div>
     </section>
 
     <section class="section has-text-centered">
         <div class="container">
+
             <div class="columns ">
                 <div class="column">
                     <div class="notification is-primary">
                         <h2 id="lat" class="title  has-text-light">Latitude</h2>
                     </div>
                 </div>
-        
+
                 <div class="column">
                     <div class="notification is-info">
                         <h2 id="long" class="title  has-text-light">Longitude</h2>
@@ -43,46 +53,68 @@
 
             <div class="columns has-text-weight-semibold">
                 <div class="column">
-                    <div id="neighbourhood" class="notification test-class">
+                    <div id="neighbourhood" class="notification">
                         Your General Location
                     </div>
                 </div>
             </div>
+
             <div class="columns has-text-weight-semibold">
                 <div class="column">
-                    <div id="street" class="notification test-class">
+                    <div id="street" class="notification">
                         More Specifically
                     </div>
                 </div>
             </div>
+
+            <div class="columns has-text-weight-semibold">
+                <div class="column is-danger">
+                    <div id="distance_total" class="notification is-danger">
+                        Distance will go here
+
+                    </div>
+                </div>
+            </div>
+
+            <div id="location-holder">
+                locations will go here
+            </div>
+
         </div>
     </section>
 
     <script>
-
-        var lastPos = {lat:0,lon:0}
+        var lastPos = {
+            lat: 0,
+            lon: 0
+        }
         var running
         var currentController
 
         var watchId
 
-        function doIt(){
+        var dataStore = []
 
-            if(running){
+        function doIt() {
+
+
+            if (running) {
                 stopGeo(watchId)
                 clearText()
                 running = false
                 return
             }
 
-            
-            watchId = navigator.geolocation.watchPosition(function(position) { 
+            dataStore = []
+
+
+            watchId = navigator.geolocation.watchPosition(async (position) => {
 
                 let lat = position.coords.latitude
                 let lon = position.coords.longitude
 
-                if(running){
-                    if( lat == lastPos.lat && lon == lastPos.lon) return
+                if (running) {
+                    if (lat == lastPos.lat && lon == lastPos.lon) return
                 }
 
                 lastPos.lat = lat
@@ -90,39 +122,63 @@
 
                 console.log(`${lat},${lon}`)
 
+                let dataPoint = {
+                    lat,
+                    lon,
+                    date: Date.now(),
+                    distance: !dataStore.length ? 0 : getDistanceFromLatLonInKm(
+                        dataStore[dataStore.length - 1].lat,
+                        dataStore[dataStore.length - 1].lon,
+                        lat,
+                        lon
+                    )
+                }
+
                 document.querySelector('#lat').innerHTML = lat.toString()
                 document.querySelector('#long').innerHTML = lon.toString()
                 document.querySelector('#start').innerHTML = 'Stop Geo-Location'
                 document.querySelector('#start').classList.add('is-danger')
-                
-                
-                var address = getAddress(lat,lon)
 
-                address.then( response => {
-                    if(response != undefined){
-                        if(response.error){
-                            document.querySelector('#neighbourhood').innerHTML = `<div class="notification is-danger" style="transition:.2s ease all!important">⚠ Waiting for signal. Unable to geolocate.</div>`
-                            document.querySelector('#street').innerText = `🚧👷‍♂️`
-                        }else{
-                            document.querySelector('#neighbourhood').innerText = response.address.neighbourhood || response.address.suburb || response.address.city || response.address.country
-                            document.querySelector('#street').innerText = response.address.road || response.address.state_district || response.address.municipality || response.address.region || response.address.state
-                        }
+
+                var address = await getAddress(lat, lon)
+
+                if (address != undefined) {
+                    if (address.error) {
+                        document.querySelector('#neighbourhood').innerHTML =
+                            `<div class="notification is-danger" style="transition:.2s ease all!important">⚠ Waiting for signal. Unable to geolocate.</div>`
+                        document.querySelector('#street').innerText = `🚧👷‍♂️`
+                    } else {
+                        document.querySelector('#neighbourhood').innerText = address.address
+                            .neighbourhood || address.address.suburb || address.address
+                            .city ||
+                            address.address.country
+                        document.querySelector('#street').innerText = address.address.road ||
+                            address.address.state_district || address.address.municipality ||
+                            address.address.region || address.address.state
                     }
-                })
-                
+                    dataPoint.address = [
+                        document.querySelector('#street').innerText,
+                        document.querySelector('#neighbourhood').innerText
+                    ]
+                }
+
+                dataStore.push(dataPoint)
+
+                updateHTML(dataStore)
+
                 running = true
-            
-            }) 
+
+            })
 
         }
 
-        function stopGeo(geo){
+        function stopGeo(geo) {
             navigator.geolocation.clearWatch(geo)
             currentController.abort()
         }
 
-        function clearText(){
-            
+        function clearText() {
+
             document.querySelector('#lat').innerHTML = 'Latitude'
             document.querySelector('#long').innerHTML = 'Longitude'
             document.querySelector('#start').innerHTML = 'Start Geo-Location'
@@ -130,36 +186,105 @@
 
             document.querySelector('#neighbourhood').innerText = 'Your General Location'
             document.querySelector('#street').innerText = 'More Specifically'
-            
+
         }
 
-        async function getAddress(lat,lon){
+        async function getAddress(lat, lon) {
 
-            let params = new URLSearchParams ({
-                format:'json',
-                lat:lat,
-                lon:lon,
-                zoom:18,
-                addressdetails:1
+            let params = new URLSearchParams({
+                format: 'json',
+                lat: lat,
+                lon: lon,
+                zoom: 18,
+                addressdetails: 1
             })
 
             let controller = new AbortController();
-            
+
             //SOS BOAS PRÁTICAS !!! 😢
             currentController = controller
-            
-            const response = await fetch('https://nominatim.openstreetmap.org/reverse?'+params,{signal:controller.signal}).then( x => x.json()).then( data => data).catch( err => console.log(err))
-            
-            return response
-            
 
+            const response = await fetch('https://nominatim.openstreetmap.org/reverse?' + params, {
+                signal: controller.signal
+            }).then(x => x.json()).then(data => data).catch(err => console.log(err))
+
+            return response
+
+        }
+
+        function updateHTML(data) {
+            let curr_index = 0
+            let max_els = 4
+            let total_distance = 0
+
+            let segments = data.reduce((acc, obj, i) => {
+
+                if (
+                    acc[curr_index].length > 0 &&
+                    acc[curr_index].length % max_els == 0
+                ) {
+                    acc.push([obj]);
+                    curr_index += 1;
+                } else {
+                    acc[curr_index].push(obj);
+                }
+
+                return acc;
+
+            }, [
+                []
+            ])
+
+            console.log(segments)
+            let all_segments = ''
+
+            segments.forEach((segment, i) => {
+                let html_start = '<div class="columns has-text-weight-semibold">'
+
+                segment.forEach((dataPoint, j) => {
+
+                    let dataPoint_start = '<div class="column"><div class="notification">'
+                    let body = `
+                            <p>x: ${dataPoint.lat}</p>
+                            <p>y: ${dataPoint.lon}</p>
+                            <p>date: ${new Date(dataPoint.date).toLocaleTimeString()}</p>
+                            <p>address: ${dataPoint.address[0]},${dataPoint.address[1]}</p>
+                            <p>distance: ${dataPoint.distance} km</p>
+                            `
+
+                    let dataPoint_end = '</div></div>'
+
+                    html_start += dataPoint_start + body + dataPoint_end
+
+                    total_distance += dataPoint.distance
+
+                })
+
+                let html_end = '</div>'
+
+                all_segments += html_start + html_end
+
+            })
+            let distance_html = document.querySelector('#distance_total')
+            let locations = document.querySelector('#location-holder')
+            locations.innerHTML = all_segments
+            distance_html.innerHTML = `<h2>distância total:</h2><p>${total_distance} km</p>`
+        }
+
+        function downloadData() {
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataStore));
+            var dlAnchorElem = document.getElementById('downloadAnchor');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `data_coords_${new Date().toDateString().replaceAll(' ','_')}.json`);
+            dlAnchorElem.click();
         }
     </script>
 
-    
+
     <script src="distance.js">
         //for posterior inclusion of distance-tracking between users
     </script>
 
 </body>
+
 </html>
