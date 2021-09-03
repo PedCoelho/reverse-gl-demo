@@ -109,9 +109,11 @@
 
 
             watchId = navigator.geolocation.watchPosition(async (position) => {
-
+                console.log(position)
                 let lat = position.coords.latitude
                 let lon = position.coords.longitude
+                let accuracy = position.coords.accuracy
+                let speed = position.coords.speed
 
                 if (running) {
                     if (lat == lastPos.lat && lon == lastPos.lon) return
@@ -125,6 +127,8 @@
                 let dataPoint = {
                     lat,
                     lon,
+                    accuracy,
+                    speed,
                     date: Date.now(),
                     distance: !dataStore.length ? 0 : getDistanceFromLatLonInKm(
                         dataStore[dataStore.length - 1].lat,
@@ -140,27 +144,30 @@
                 document.querySelector('#start').classList.add('is-danger')
 
 
-                var address = await getAddress(lat, lon)
+                getAddress(lat, lon).then(response => {
 
-                if (address != undefined) {
-                    if (address.error) {
-                        document.querySelector('#neighbourhood').innerHTML =
-                            `<div class="notification is-danger" style="transition:.2s ease all!important">⚠ Waiting for signal. Unable to geolocate.</div>`
-                        document.querySelector('#street').innerText = `🚧👷‍♂️`
-                    } else {
-                        document.querySelector('#neighbourhood').innerText = address.address
-                            .neighbourhood || address.address.suburb || address.address
-                            .city ||
-                            address.address.country
-                        document.querySelector('#street').innerText = address.address.road ||
-                            address.address.state_district || address.address.municipality ||
-                            address.address.region || address.address.state
+                    if (response != undefined) {
+                        if (response.error) {
+                            document.querySelector('#neighbourhood').innerHTML =
+                                `<div class="notification is-danger" style="transition:.2s ease all!important">⚠ Waiting for signal. Unable to geolocate.</div>`
+                            document.querySelector('#street').innerText = `🚧👷‍♂️`
+                        } else {
+                            document.querySelector('#neighbourhood').innerText = response.address
+                                .neighbourhood || response.address.suburb || response.address
+                                .city ||
+                                response.address.country
+                            document.querySelector('#street').innerText = response.address.road ||
+                                response.address.state_district || response.address.municipality ||
+                                response.address.region || response.address.state
+                        }
+                        dataPoint.address = [
+                            document.querySelector('#street').innerText,
+                            document.querySelector('#neighbourhood').innerText
+                        ]
+                        updateHTML(dataStore)
+
                     }
-                    dataPoint.address = [
-                        document.querySelector('#street').innerText,
-                        document.querySelector('#neighbourhood').innerText
-                    ]
-                }
+                })
 
                 dataStore.push(dataPoint)
 
@@ -168,8 +175,14 @@
 
                 running = true
 
+            }, error, {
+                enableHighAccuracy: true
             })
 
+        }
+
+        function error(err) {
+            console.warn('ERRO(' + err.code + '): ' + err.message);
         }
 
         function stopGeo(geo) {
@@ -248,7 +261,7 @@
                             <p>x: ${dataPoint.lat}</p>
                             <p>y: ${dataPoint.lon}</p>
                             <p>date: ${new Date(dataPoint.date).toLocaleTimeString()}</p>
-                            <p>address: ${dataPoint.address[0]},${dataPoint.address[1]}</p>
+                            <p>address: ${dataPoint.address?.[0]},${dataPoint.address?.[1]}</p>
                             <p>distance: ${dataPoint.distance.toFixed(2)} km</p>
                             `
 
