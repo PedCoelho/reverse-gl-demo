@@ -133,7 +133,9 @@
 
 
             watchId = navigator.geolocation.watchPosition((position) => {
-                console.log(position)
+
+                let storeIndex = dataStore.length
+
                 let lat = position.coords.latitude
                 let lon = position.coords.longitude
                 let accuracy = position.coords.accuracy
@@ -188,8 +190,9 @@
                             document.querySelector('#street').innerText,
                             document.querySelector('#neighbourhood').innerText
                         ]
-                        // updateHTML(dataStore)
-                        //todo replace point address 
+
+                        //update Address lazily
+                        renderAddress(dataPoint, storeIndex)
 
                     }
                 })
@@ -251,37 +254,14 @@
         }
 
         function updateHTML(dataPoint, store) {
-            // let curr_index = 0
-            // let max_els = 4
+
             let distance_html = document.querySelector('#distance_total')
             let locations = document.querySelector('#location-holder')
             let total_distance = store.map(x => x.distance).reduce((a, b) => a + b, 0)
 
             distance_html.innerHTML = `<h2>distância total:</h2><p>${total_distance.toFixed(2)} km</p>`
 
-            // let segments = data.reduce((acc, obj, i) => {
 
-            //     if (
-            //         acc[curr_index].length > 0 &&
-            //         acc[curr_index].length % max_els == 0
-            //     ) {
-            //         acc.push([obj]);
-            //         curr_index += 1;
-            //     } else {
-            //         acc[curr_index].push(obj);
-            //     }
-
-            //     return acc;
-
-            // }, [
-            //     []
-            // ])
-
-            // console.log(segments)
-            // let all_segments = ''
-
-            // segments.forEach((segment, i) => {
-            // let html_start = '<div class="columns has-text-weight-semibold">'
             let new_dataPoint = document.createElement('div')
             new_dataPoint.className = 'column'
 
@@ -290,21 +270,24 @@
                             <p>x: ${dataPoint.lat}</p>
                             <p>y: ${dataPoint.lon}</p>
                             <p>date: ${new Date(dataPoint.date).toLocaleTimeString()}</p>
-                            <p>address: ${dataPoint.address?.[0]},${dataPoint.address?.[1]}</p>
+                            <p class="address">address: ${dataPoint.address?.[0]},${dataPoint.address?.[1]}</p>
                             <p>distance: ${dataPoint.distance.toFixed(2)} km</p>
                             `
 
             let dataPoint_end = '</div>'
 
-            // })
-
-            // let html_end = '</div>'
-
             new_dataPoint.innerHTML = dataPoint_start + body + dataPoint_end
 
-            console.log(new_dataPoint)
-            // })
             locations.appendChild(new_dataPoint)
+
+
+        }
+
+        function renderAddress(dataPoint, storeIndex) {
+            console.log(storeIndex)
+            let renderedPoint = document.querySelectorAll('#location-holder>.column>.notification>p.address')[
+                storeIndex]
+            renderedPoint.innerText = `address: ${dataPoint.address?.[0]},${dataPoint.address?.[1]}`
 
 
         }
