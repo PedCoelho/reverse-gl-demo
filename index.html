@@ -100,8 +100,8 @@
                 </div>
             </div>
 
-            <div id="location-holder">
-                locations will go here
+            <div id="location-holder" class="columns has-text-weight-semibold">
+
             </div>
 
         </div>
@@ -132,7 +132,7 @@
             dataStore = []
 
 
-            watchId = navigator.geolocation.watchPosition(async (position) => {
+            watchId = navigator.geolocation.watchPosition((position) => {
                 console.log(position)
                 let lat = position.coords.latitude
                 let lon = position.coords.longitude
@@ -188,14 +188,15 @@
                             document.querySelector('#street').innerText,
                             document.querySelector('#neighbourhood').innerText
                         ]
-                        updateHTML(dataStore)
+                        // updateHTML(dataStore)
+                        //todo replace point address 
 
                     }
                 })
 
                 dataStore.push(dataPoint)
 
-                updateHTML(dataStore)
+                updateHTML(dataPoint, dataStore)
 
                 running = true
 
@@ -249,39 +250,43 @@
 
         }
 
-        function updateHTML(data) {
-            let curr_index = 0
-            let max_els = 4
-            let total_distance = 0
+        function updateHTML(dataPoint, store) {
+            // let curr_index = 0
+            // let max_els = 4
+            let distance_html = document.querySelector('#distance_total')
+            let locations = document.querySelector('#location-holder')
+            let total_distance = store.map(x => x.distance).reduce((a, b) => a + b, 0)
 
-            let segments = data.reduce((acc, obj, i) => {
+            distance_html.innerHTML = `<h2>distância total:</h2><p>${total_distance.toFixed(2)} km</p>`
 
-                if (
-                    acc[curr_index].length > 0 &&
-                    acc[curr_index].length % max_els == 0
-                ) {
-                    acc.push([obj]);
-                    curr_index += 1;
-                } else {
-                    acc[curr_index].push(obj);
-                }
+            // let segments = data.reduce((acc, obj, i) => {
 
-                return acc;
+            //     if (
+            //         acc[curr_index].length > 0 &&
+            //         acc[curr_index].length % max_els == 0
+            //     ) {
+            //         acc.push([obj]);
+            //         curr_index += 1;
+            //     } else {
+            //         acc[curr_index].push(obj);
+            //     }
 
-            }, [
-                []
-            ])
+            //     return acc;
 
-            console.log(segments)
-            let all_segments = ''
+            // }, [
+            //     []
+            // ])
 
-            segments.forEach((segment, i) => {
-                let html_start = '<div class="columns has-text-weight-semibold">'
+            // console.log(segments)
+            // let all_segments = ''
 
-                segment.forEach((dataPoint, j) => {
+            // segments.forEach((segment, i) => {
+            // let html_start = '<div class="columns has-text-weight-semibold">'
+            let new_dataPoint = document.createElement('div')
+            new_dataPoint.className = 'column'
 
-                    let dataPoint_start = '<div class="column"><div class="notification">'
-                    let body = `
+            let dataPoint_start = '<div class="notification">'
+            let body = `
                             <p>x: ${dataPoint.lat}</p>
                             <p>y: ${dataPoint.lon}</p>
                             <p>date: ${new Date(dataPoint.date).toLocaleTimeString()}</p>
@@ -289,30 +294,27 @@
                             <p>distance: ${dataPoint.distance.toFixed(2)} km</p>
                             `
 
-                    let dataPoint_end = '</div></div>'
+            let dataPoint_end = '</div>'
 
-                    html_start += dataPoint_start + body + dataPoint_end
+            // })
 
-                    total_distance += dataPoint.distance
+            // let html_end = '</div>'
 
-                })
+            new_dataPoint.innerHTML = dataPoint_start + body + dataPoint_end
 
-                let html_end = '</div>'
+            console.log(new_dataPoint)
+            // })
+            locations.appendChild(new_dataPoint)
 
-                all_segments += html_start + html_end
 
-            })
-            let distance_html = document.querySelector('#distance_total')
-            let locations = document.querySelector('#location-holder')
-            locations.innerHTML = all_segments
-            distance_html.innerHTML = `<h2>distância total:</h2><p>${total_distance.toFixed(2)} km</p>`
         }
 
         function downloadData() {
             var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataStore));
             var dlAnchorElem = document.getElementById('downloadAnchor');
             dlAnchorElem.setAttribute("href", dataStr);
-            dlAnchorElem.setAttribute("download", `data_coords_${new Date().toDateString().replaceAll(' ','_')}.json`);
+            dlAnchorElem.setAttribute("download",
+                `data_coords_${new Date().toDateString().replaceAll(' ','_')}.json`);
             dlAnchorElem.click();
         }
     </script>

@@ -44,7 +44,7 @@
         </div>
     </nav>
 
-    <section>
+    <section class="px-5">
         <div class="file is-centered is-boxed is-success has-name mb-4">
             <label class="file-label">
                 <input class="file-input" type="file" name="resume">
@@ -54,24 +54,49 @@
                         Carregar dados
                     </span>
                 </span>
-                <span class="file-name">
-                    Screen Shot 2017-07-29 at 15.54.25.png
+                <span class="file-name has-text-centered	">
+                    Nenhum arquivo carregado ...
                 </span>
             </label>
         </div>
-        <div class="m-4" id="map"></div>
+        <div class="container is-centered">
+            <label class="label">
+                <div class="has-text-centered">
+                    Acurácia (metros)
+                </div>
+                <input type="number" max="150" min="10" class="input" placeholder="150">
+            </label>
+
+            <div class="mt-4" id="map"></div>
+        </div>
     </section>
 
+    <script type="module">
+        import leaflet from './leaflet-fns.js' 
 
-    <script>
+        let map = leaflet.createMap('map')
+        map.centerMap(0,0)
+        
+        navigator.geolocation.getCurrentPosition(success => map.centerMap(success.coords.latitude,success.coords.longitude))
+
+
         const fileInput = document.querySelector('input[type=file]');
+        const accuracy_val = document.querySelector('input[type=number]')
+
+
         fileInput.onchange = async () => {
             if (fileInput.files.length > 0) {
                 const fileName = document.querySelector('.file-name');
+
                 fileName.textContent = fileInput.files[0].name;
-                let data = await getData(fileInput.files[0])
-                console.log(data)
-                updatePolyline(data, window.polyline)
+
+                let dataPoints = await getData(fileInput.files[0])
+
+                console.log(dataPoints)
+
+                map.polyline.updateCoords(dataPoints,accuracy_val.value)
+
+                fileInput.value = ''
             }
         }
 
@@ -85,10 +110,8 @@
                 };
                 reader.readAsText(file);
             });
-
         }
     </script>
-
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -119,52 +142,6 @@
     </script>
 
 
-    <script type="module">
-
-        //Initial Map Setup
-        import token from './map_token.js'
-
-           window.map = L.map('map').setView([51.505, -0.09], 13);
-
-            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-                maxZoom: 18,
-                id: 'mapbox/satellite-v9',
-                tileSize: 512,
-                zoomOffset: -1,
-                accessToken: token
-            }).addTo(window.map);
-
-            window.polyline = createPolyline()
-    </script>
-
-
-    <script>
-        function createPolyline() {
-
-            let polyline = L.polyline([
-                []
-            ], {
-                color: 'red'
-            }).addTo(window.map);
-
-            return polyline
-
-        }
-
-        function updatePolyline(coords, Polyline) {
-            // map coords to array of LatLng points
-            coords = coords.map(({
-                lat,
-                lon
-            }) => [lat, lon])
-
-            Polyline.setLatLngs(coords)
-
-            // zoom the map to the polyline
-            window.map.fitBounds(Polyline.getBounds());
-        }
-    </script>
 
 </body>
 
