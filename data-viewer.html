@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" class="has-navbar-fixed-top">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GeoLocation Experiment</title>
+    <link rel="stylesheet" href="bulma.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin="" />
+
+
+</head>
+
+<body>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+    <nav class="navbar is-fixed-top">
+
+        <div class="navbar-brand">
+            <a class="navbar-item" href="#">
+                <img src="./favicon.ico">
+            </a>
+
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false"
+                data-target="navbarBasicExample">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </a>
+        </div>
+
+        <div id="navbarBasicExample" class="navbar-menu">
+            <div class="navbar-start">
+                <a class="navbar-item" href="./index.html">Tracker</a>
+            </div>
+            <div class="navbar-end">
+            </div>
+        </div>
+    </nav>
+
+    <section>
+        <div class="file is-centered is-boxed is-success has-name mb-4">
+            <label class="file-label">
+                <input class="file-input" type="file" name="resume">
+                <span class="file-cta">
+
+                    <span class="file-label">
+                        Carregar dados
+                    </span>
+                </span>
+                <span class="file-name">
+                    Screen Shot 2017-07-29 at 15.54.25.png
+                </span>
+            </label>
+        </div>
+        <div class="m-4" id="map"></div>
+    </section>
+
+
+    <script>
+        const fileInput = document.querySelector('input[type=file]');
+        fileInput.onchange = async () => {
+            if (fileInput.files.length > 0) {
+                const fileName = document.querySelector('.file-name');
+                fileName.textContent = fileInput.files[0].name;
+                let data = await getData(fileInput.files[0])
+                console.log(data)
+                updatePolyline(data, window.polyline)
+            }
+        }
+
+        async function getData(file) {
+
+            return new Promise((resolve, reject) => {
+                let reader = new FileReader();
+                reader.onerror = reject;
+                reader.onload = function (event) {
+                    resolve(JSON.parse(event.target.result))
+                };
+                reader.readAsText(file);
+            });
+
+        }
+    </script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Get all "navbar-burger" elements
+            const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+
+            // Check if there are any navbar burgers
+            if ($navbarBurgers.length > 0) {
+
+                // Add a click event on each of them
+                $navbarBurgers.forEach(el => {
+                    el.addEventListener('click', () => {
+
+                        // Get the target from the "data-target" attribute
+                        const target = el.dataset.target;
+                        const $target = document.getElementById(target);
+
+                        // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+                        el.classList.toggle('is-active');
+                        $target.classList.toggle('is-active');
+
+                    });
+                });
+            }
+
+        });
+    </script>
+
+
+    <script type="module">
+
+        //Initial Map Setup
+        import token from './map_token.js'
+
+           window.map = L.map('map').setView([51.505, -0.09], 13);
+
+            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                maxZoom: 18,
+                id: 'mapbox/satellite-v9',
+                tileSize: 512,
+                zoomOffset: -1,
+                accessToken: token
+            }).addTo(window.map);
+
+            window.polyline = createPolyline()
+    </script>
+
+
+    <script>
+        function createPolyline() {
+
+            let polyline = L.polyline([
+                []
+            ], {
+                color: 'red'
+            }).addTo(window.map);
+
+            return polyline
+
+        }
+
+        function updatePolyline(coords, Polyline) {
+            // map coords to array of LatLng points
+            coords = coords.map(({
+                lat,
+                lon
+            }) => [lat, lon])
+
+            Polyline.setLatLngs(coords)
+
+            // zoom the map to the polyline
+            window.map.fitBounds(Polyline.getBounds());
+        }
+    </script>
+
+</body>
+
+</html>

@@ -15,4 +15,8 @@ a.button.is-danger:hover {
   background-color: #e03b5c !important;
 }
 
+#map {
+  height: 400px;
+}
+
 /*# sourceMappingURL=style.css.map */
