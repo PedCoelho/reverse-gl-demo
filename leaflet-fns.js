@@ -31,6 +31,26 @@ function createPolyline(map) {
     color: "red",
   }).addTo(map);
 
+  polyline.addCoord = (LatLng) => {
+    if (polyline.isEmpty()) {
+      map.start_mark.setLatLng(LatLng);
+    } else {
+      map.end_mark.setLatLng(LatLng);
+    }
+
+    polyline.addLatLng(LatLng);
+
+    map.fitBounds(polyline.getBounds());
+  };
+
+  polyline.clearCoords = () => {
+    map.start_mark.setLatLng([0, 0]);
+    map.end_mark.setLatLng([0, 0]);
+
+    polyline.setLatLngs([]);
+    // map.fitBounds(polyline.getBounds());
+  };
+
   polyline.updateCoords = (coords, accThreshold) => {
     // map coords to array of LatLng points
     let threshold = accThreshold ? accThreshold : 150;

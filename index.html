@@ -9,9 +9,16 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin="" />
+
 </head>
 
 <body>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
     <nav class="navbar is-fixed-top">
 
         <div class="navbar-brand">
@@ -99,11 +106,11 @@
                     </div>
                 </div>
             </div>
-
-            <div id="location-holder" class="columns has-text-weight-semibold">
-
+            <button onclick="mapToggle()" class='button is-success'>Map Toggle</button>
+            <div class="data-holder container">
+                <div class="" id="map"></div>
+                <div id="location-holder" class="columns not-visible has-text-weight-semibold"></div>
             </div>
-
         </div>
     </section>
 
@@ -121,16 +128,14 @@
 
         function doIt() {
 
-
             if (running) {
                 stopGeo(watchId)
                 clearText()
                 running = false
                 return
             }
-
+            clearRenderedDataPoints()
             dataStore = []
-
 
             watchId = navigator.geolocation.watchPosition((position) => {
 
@@ -198,6 +203,8 @@
                 })
 
                 dataStore.push(dataPoint)
+                window.map.polyline.addCoord([dataPoint.lat, dataPoint.lon])
+
 
                 updateHTML(dataPoint, dataStore)
 
@@ -227,6 +234,12 @@
 
             document.querySelector('#neighbourhood').innerText = 'Your General Location'
             document.querySelector('#street').innerText = 'More Specifically'
+
+        }
+
+        function clearRenderedDataPoints() {
+            window.map.polyline.clearCoords()
+            document.querySelector('#location-holder').innerHTML = ''
 
         }
 
@@ -288,8 +301,6 @@
             let renderedPoint = document.querySelectorAll('#location-holder>.column>.notification>p.address')[
                 storeIndex]
             renderedPoint.innerText = `address: ${dataPoint.address?.[0]},${dataPoint.address?.[1]}`
-
-
         }
 
         function downloadData() {
@@ -308,6 +319,11 @@
     </script>
 
     <script>
+        function mapToggle() {
+            let elements = document.querySelectorAll('.data-holder>*')
+            elements.forEach(el => el.classList.toggle('not-visible'))
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
 
             // Get all "navbar-burger" elements
@@ -334,6 +350,18 @@
 
         });
     </script>
+
+    <script type="module">
+        import leaflet from './leaflet-fns.js' 
+
+    let map = window.map = leaflet.createMap('map')
+
+    map.centerMap(0,0)
+    
+    navigator.geolocation.getCurrentPosition(success => map.centerMap(success.coords.latitude,success.coords.longitude))
+
+
+</script>
 
 </body>
 

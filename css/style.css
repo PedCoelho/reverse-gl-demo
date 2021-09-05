@@ -19,4 +19,26 @@ a.button.is-danger:hover {
   height: 400px;
 }
 
+.data-holder {
+  position: relative;
+  height: 400px;
+}
+
+.data-holder>* {
+  transition: all .2s ease;
+  display: flex;
+  flex-wrap: wrap;
+  top: 1.5rem;
+  left: 0;
+  right: 0;
+  bottom: 1.5rem;
+  z-index: 2;
+  position: absolute;
+}
+
+.not-visible {
+  opacity: 0;
+  visibility: hidden;
+}
+
 /*# sourceMappingURL=style.css.map */
